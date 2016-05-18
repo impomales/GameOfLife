@@ -1,0 +1,20 @@
+.controls button {
+  width: 25%;
+}
+.controls ul li {
+  display: inline;
+}
+.controls h6 {
+  width: 25%;
+  display: inline;
+}
+
+#GameView-Matrix table {
+  border: 2px solid black;
+  width: 100%;
+}
+#GameView-Matrix table td {
+  width: 50px;
+  height: 50px;
+  border: 1px solid black;
+}

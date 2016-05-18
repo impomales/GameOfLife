@@ -1,0 +1,103 @@
+/*
+  refactor controls into separate components.
+  render table based on size
+  cell component
+  timing
+  nextstate calculation
+  update state
+*/
+
+const DEAD = 0;
+const ALIVE = 1;
+
+// create 2d array of dead cells.
+function create2d(a, b) {
+  var matrix = new Array(a);
+  for (var i = 0; i < a; i++) {
+    matrix[i] = new Array(b);
+    for(var j = 0; j < b; j++) {
+      matrix[i][j] = DEAD;
+    }
+  }
+  return matrix;
+}
+// end create2d.
+
+
+// initial state of game.
+var state = {
+  current: create2d(70, 50),
+  next: create2d(70, 50),
+  size: [70,50],
+  speed: 'medium',
+  generation: 0
+};
+
+// main window of game.
+var GameView = React.createClass({
+  getInitialState: function() {
+    return {state};
+  },
+  render: function() {
+    return (
+      // GameView
+      <div id="GameView">
+        {/* Top Controls*/}
+        <div id="GameView-TopControls" className="controls">
+          <ul>
+            <li><button>Start</button></li>
+            <li><button>Pause</button></li>
+            <li><button>Clear</button></li>
+            <li><button disabled>Generation: </button></li>
+          </ul>
+        </div>
+        {/* end Top Controls */}
+        
+        {/* matrix */}
+        <div id="GameView-Matrix">
+          {/* table built based on data */}
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+        {/* end matrix */}
+        
+        {/* Bottom Controls*/}
+        <div id="GameView-BottomControls" className="controls">
+          <ul>
+            <li><button disabled>Board Size: </button></li>
+            <li><button>50x30</button></li>
+            <li><button>70x50</button></li>
+            <li><button>100x80</button></li>
+          </ul>
+          <ul>
+            <li><button disabled>Speed: </button></li>
+            <li><button>slow</button></li>
+            <li><button>medium</button></li>
+            <li><button>fast</button></li>
+          </ul>
+        </div>
+        {/* end Bottom Controls */}
+      </div>
+      // end GameView
+    );
+  }
+  // end render
+});
+// end main window of game.
+
+React.render(<GameView />, document.getElementById('matrix'));
