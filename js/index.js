@@ -9,6 +9,10 @@
 var DEAD = 0;
 var ALIVE = 1;
 
+var SLOW = 1000;
+var MEDIUM = 500;
+var FAST = 300;
+
 // create 2d array of dead cells.
 function create2d(a, b) {
   var matrix = new Array(a);
@@ -23,6 +27,9 @@ function create2d(a, b) {
 }
 // end create2d.
 
+// updates values for next generation
+function nextGeneration(current, next) {}
+
 // main window of game.
 var GameView = React.createClass({
   displayName: "GameView",
@@ -33,10 +40,22 @@ var GameView = React.createClass({
       current: create2d(50, 70),
       next: create2d(50, 70),
       size: [50, 70],
-      speed: 'medium',
+      speed: MEDIUM,
       generation: 0,
       isOn: true
     };
+  },
+  componentDidMount: function componentDidMount() {
+    window.setInterval(this.nextState, this.state.speed);
+  },
+  nextState: function nextState() {
+    var next = create2d(50, 70);
+    var currentState = this.state;
+    var currentProps = this.state.props;
+    this.setState({ current: next });
+    this.setState(function (currentState, currentProps) {
+      return { generation: currentState.generation + 1 };
+    });
   },
   render: function render() {
     return React.createElement(
@@ -160,7 +179,13 @@ var Cell = React.createClass({
   displayName: "Cell",
 
   render: function render() {
-    return React.createElement("td", null);
+    var color = this.props.state ? '#90020d' : '#291013';
+    var css = { backgroundColor: color };
+    return React.createElement(
+      "td",
+      null,
+      React.createElement("div", { style: css })
+    );
   }
 });
 // end of cell.
