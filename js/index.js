@@ -1,9 +1,6 @@
 "use strict";
 
 /*
-  refactor controls into separate components.
-  render table based on size
-  cell component
   timing
   nextstate calculation
   update state
@@ -18,190 +15,42 @@ function create2d(a, b) {
   for (var i = 0; i < a; i++) {
     matrix[i] = new Array(b);
     for (var j = 0; j < b; j++) {
-      matrix[i][j] = DEAD;
+      // assigned randomly either 0 or 1.
+      matrix[i][j] = Math.floor(Math.random() * 2);
     }
   }
   return matrix;
 }
 // end create2d.
 
-// initial state of game.
-var state = {
-  current: create2d(70, 50),
-  next: create2d(70, 50),
-  size: [70, 50],
-  speed: 'medium',
-  generation: 0
-};
-
 // main window of game.
 var GameView = React.createClass({
   displayName: "GameView",
 
   getInitialState: function getInitialState() {
-    return { state: state };
+    // initial default state of game
+    return {
+      current: create2d(50, 70),
+      next: create2d(50, 70),
+      size: [50, 70],
+      speed: 'medium',
+      generation: 0,
+      isOn: true
+    };
   },
   render: function render() {
     return React.createElement(
       "div",
       { id: "GameView" },
-      React.createElement(
-        "div",
-        { id: "GameView-TopControls", className: "controls" },
-        React.createElement(
-          "ul",
-          null,
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "Start"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "Pause"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "Clear"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              { disabled: true },
-              "Generation: "
-            )
-          )
-        )
-      ),
-      React.createElement(
-        "div",
-        { id: "GameView-Matrix" },
-        React.createElement(
-          "table",
-          null,
-          React.createElement(
-            "tr",
-            null,
-            React.createElement("td", null),
-            React.createElement("td", null),
-            React.createElement("td", null)
-          ),
-          React.createElement(
-            "tr",
-            null,
-            React.createElement("td", null),
-            React.createElement("td", null),
-            React.createElement("td", null)
-          ),
-          React.createElement(
-            "tr",
-            null,
-            React.createElement("td", null),
-            React.createElement("td", null),
-            React.createElement("td", null)
-          )
-        )
-      ),
-      React.createElement(
-        "div",
-        { id: "GameView-BottomControls", className: "controls" },
-        React.createElement(
-          "ul",
-          null,
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              { disabled: true },
-              "Board Size: "
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "50x30"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "70x50"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "100x80"
-            )
-          )
-        ),
-        React.createElement(
-          "ul",
-          null,
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              { disabled: true },
-              "Speed: "
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "slow"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "medium"
-            )
-          ),
-          React.createElement(
-            "li",
-            null,
-            React.createElement(
-              "button",
-              null,
-              "fast"
-            )
-          )
-        )
-      )
+      React.createElement(TopControls, {
+        generation: this.state.generation,
+        isOn: this.state.isOn
+      }),
+      React.createElement(Matrix, { current: this.state.current }),
+      React.createElement(BottomControls, {
+        size: this.state.size,
+        speed: this.state.speed
+      })
     )
     // end GameView
     ;
@@ -209,5 +58,205 @@ var GameView = React.createClass({
   // end render
 });
 // end main window of game.
+
+// start/pause/clear options, prop: generation.
+var TopControls = React.createClass({
+  displayName: "TopControls",
+
+  render: function render() {
+    return React.createElement(
+      "div",
+      { id: "TopControls", className: "controls" },
+      React.createElement(
+        "ul",
+        null,
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "Start"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "Pause"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "Clear"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            { disabled: true },
+            "Generation: ",
+            this.props.generation
+          )
+        )
+      )
+    );
+  }
+  // end render
+});
+// end of top controls.
+
+// table of cells.
+var Matrix = React.createClass({
+  displayName: "Matrix",
+
+  render: function render() {
+    var rows = [];
+    for (var i = 0; i < this.props.current.length; i++) {
+      var cells = [];
+      for (var j = 0; j < this.props.current[i].length; j++) {
+        cells.push(React.createElement(Cell, { state: this.props.current[i][j] }));
+      }
+      rows.push(React.createElement(CellRow, { cells: cells }));
+    }
+    return React.createElement(
+      "div",
+      { id: "Matrix" },
+      React.createElement(
+        "table",
+        null,
+        rows
+      )
+    );
+  }
+  // end render
+});
+// end of table.
+
+// row of cells
+var CellRow = React.createClass({
+  displayName: "CellRow",
+
+  render: function render() {
+    return React.createElement(
+      "tr",
+      null,
+      this.props.cells
+    );
+  }
+});
+// end of row.
+
+// cell, prop: alive/dead, neigbors...maybe as a sum.
+var Cell = React.createClass({
+  displayName: "Cell",
+
+  render: function render() {
+    return React.createElement("td", null);
+  }
+});
+// end of cell.
+
+// controls for size and speed.
+var BottomControls = React.createClass({
+  displayName: "BottomControls",
+
+  render: function render() {
+    return React.createElement(
+      "div",
+      { id: "BottomControls", className: "controls" },
+      React.createElement(
+        "ul",
+        null,
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            { disabled: true },
+            "Board Size: "
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "30x50"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "50x70"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "80x100"
+          )
+        )
+      ),
+      React.createElement(
+        "ul",
+        null,
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            { disabled: true },
+            "Speed: "
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "slow"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "medium"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "button",
+            null,
+            "fast"
+          )
+        )
+      )
+    );
+  }
+  // end render
+});
+// end of bottom controls.
 
 React.render(React.createElement(GameView, null), document.getElementById('matrix'));

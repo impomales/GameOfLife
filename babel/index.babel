@@ -1,7 +1,4 @@
 /*
-  refactor controls into separate components.
-  render table based on size
-  cell component
   timing
   nextstate calculation
   update state
@@ -16,7 +13,8 @@ function create2d(a, b) {
   for (var i = 0; i < a; i++) {
     matrix[i] = new Array(b);
     for(var j = 0; j < b; j++) {
-      matrix[i][j] = DEAD;
+      // assigned randomly either 0 or 1.
+      matrix[i][j] = Math.floor((Math.random() * 2));
     }
   }
   return matrix;
@@ -24,74 +22,37 @@ function create2d(a, b) {
 // end create2d.
 
 
-// initial state of game.
-var state = {
-  current: create2d(70, 50),
-  next: create2d(70, 50),
-  size: [70,50],
-  speed: 'medium',
-  generation: 0
-};
+
 
 // main window of game.
 var GameView = React.createClass({
   getInitialState: function() {
-    return {state};
+    // initial default state of game
+    return {
+      current: create2d(50, 70),
+      next: create2d(50, 70),
+      size: [50,70],
+      speed: 'medium',
+      generation: 0,
+      isOn: true
+    };
   },
   render: function() {
     return (
       // GameView
       <div id="GameView">
-        {/* Top Controls*/}
-        <div id="GameView-TopControls" className="controls">
-          <ul>
-            <li><button>Start</button></li>
-            <li><button>Pause</button></li>
-            <li><button>Clear</button></li>
-            <li><button disabled>Generation: </button></li>
-          </ul>
-        </div>
-        {/* end Top Controls */}
+        <TopControls 
+          generation={this.state.generation}
+          isOn={this.state.isOn}
+          />
         
         {/* matrix */}
-        <div id="GameView-Matrix">
-          {/* table built based on data */}
-          <table>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </table>
-        </div>
-        {/* end matrix */}
+        <Matrix current={this.state.current}/>
         
-        {/* Bottom Controls*/}
-        <div id="GameView-BottomControls" className="controls">
-          <ul>
-            <li><button disabled>Board Size: </button></li>
-            <li><button>50x30</button></li>
-            <li><button>70x50</button></li>
-            <li><button>100x80</button></li>
-          </ul>
-          <ul>
-            <li><button disabled>Speed: </button></li>
-            <li><button>slow</button></li>
-            <li><button>medium</button></li>
-            <li><button>fast</button></li>
-          </ul>
-        </div>
-        {/* end Bottom Controls */}
+        <BottomControls 
+          size={this.state.size}
+          speed={this.state.speed}
+          />
       </div>
       // end GameView
     );
@@ -99,5 +60,92 @@ var GameView = React.createClass({
   // end render
 });
 // end main window of game.
+
+// start/pause/clear options, prop: generation.
+var TopControls = React.createClass({
+  render: function() {
+    return (
+      <div id="TopControls" className="controls">
+        <ul>
+          <li><button>Start</button></li>
+          <li><button>Pause</button></li>
+          <li><button>Clear</button></li>
+          <li><button disabled>Generation: {this.props.generation}</button></li>
+        </ul>
+      </div>
+    );
+  }
+  // end render
+});
+// end of top controls.
+
+// table of cells.
+var Matrix = React.createClass({
+  render: function() {
+    var rows = [];
+    for (var i = 0; i < this.props.current.length; i++) {
+      var cells = [];
+      for (var j = 0; j < this.props.current[i].length; j++) {
+        cells.push(<Cell state={this.props.current[i][j]}/>);
+      }
+      rows.push(<CellRow cells={cells}/>);
+    }
+    return (
+      <div id="Matrix">
+        <table>
+          {rows}
+        </table>
+      </div>
+    );
+  }
+  // end render
+});
+// end of table.
+
+// row of cells
+var CellRow = React.createClass({
+  render: function() {
+    return (
+      <tr>
+        {this.props.cells}
+      </tr>
+    );
+  }
+});
+// end of row.
+
+// cell, prop: alive/dead, neigbors...maybe as a sum.
+var Cell = React.createClass({
+  render: function() {
+    return (
+      <td></td>
+    );
+  }
+});
+// end of cell.
+
+// controls for size and speed.
+var BottomControls = React.createClass({
+  render: function() {
+    return (
+      <div id="BottomControls" className="controls">
+        <ul>
+          <li><button disabled>Board Size: </button></li>
+          <li><button>30x50</button></li>
+          <li><button>50x70</button></li>
+          <li><button>80x100</button></li>
+        </ul>
+        <ul>
+          <li><button disabled>Speed: </button></li>
+          <li><button>slow</button></li>
+          <li><button>medium</button></li>
+          <li><button>fast</button></li>
+        </ul>
+      </div>
+    );
+  }
+  // end render
+});
+// end of bottom controls.
 
 React.render(<GameView />, document.getElementById('matrix'));
