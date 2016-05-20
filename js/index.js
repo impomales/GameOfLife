@@ -1,34 +1,69 @@
 "use strict";
 
-/*
-  timing
-  nextstate calculation
-  update state
-*/
-
 var DEAD = 0;
 var ALIVE = 1;
 
-var SLOW = 1000;
-var MEDIUM = 500;
-var FAST = 300;
+var SLOW = 300;
+var MEDIUM = 100;
+var FAST = 50;
 
-// create 2d array of dead cells.
+// create 2d array of cells.
 function create2d(a, b) {
   var matrix = new Array(a);
   for (var i = 0; i < a; i++) {
     matrix[i] = new Array(b);
     for (var j = 0; j < b; j++) {
       // assigned randomly either 0 or 1.
-      matrix[i][j] = Math.floor(Math.random() * 2);
+      matrix[i][j] = Math.random() < 0.5 ? 1 : 0;
     }
   }
   return matrix;
 }
 // end create2d.
 
+// sums the neighbors at cell(i, j)
+// wraps around if index out of bounds.
+function sumNeighbors(current, i, j) {
+  var iMinus = i - 1;
+  var iPlus = i + 1;
+  var jMinus = j - 1;
+  var jPlus = j + 1;
+
+  if (iPlus >= current.length) iPlus = 0;
+  if (iMinus < 0) iMinus = current.length - 1;
+  if (jPlus >= current[i].length) jPlus = 0;
+  if (jMinus < 0) jMinus = current[i].length - 1;
+
+  return current[iMinus][jMinus] + current[iMinus][j] + current[iMinus][jPlus] + current[i][jMinus] + current[i][jPlus] + current[iPlus][jMinus] + current[iPlus][j] + current[iPlus][jPlus];
+}
+
 // updates values for next generation
-function nextGeneration(current, next) {}
+function nextGeneration(current) {
+  var next = create2d(current.length, current[0].length);
+  for (var i = 0; i < current.length; i++) {
+    for (var j = 0; j < current[i].length; j++) {
+      // get neighbors
+      var neighbors = sumNeighbors(current, i, j);
+      // sum of neighbors and current[i][j]
+      var sum = neighbors + current[i][j];
+      // rules for next generation.
+
+      if (sum === 3) next[i][j] = ALIVE;else if (sum === 4) next[i][j] = current[i][j];else next[i][j] = DEAD;
+
+      /*
+      if (current[i][j] === ALIVE) {
+        if (neighbors < 2 || neighbors > 3)
+          next[i][j] = DEAD;
+        else next[i][j] = ALIVE;
+      } else {
+        if (neighbors === 3) next[i][j] = ALIVE;
+        else next[i][j] = DEAD;
+      }
+      */
+    }
+  }
+  return next;
+}
 
 // main window of game.
 var GameView = React.createClass({
@@ -38,7 +73,7 @@ var GameView = React.createClass({
     // initial default state of game
     return {
       current: create2d(50, 70),
-      next: create2d(50, 70),
+      previous: create2d(50, 70),
       size: [50, 70],
       speed: MEDIUM,
       generation: 0,
@@ -49,12 +84,11 @@ var GameView = React.createClass({
     window.setInterval(this.nextState, this.state.speed);
   },
   nextState: function nextState() {
-    var next = create2d(50, 70);
-    var currentState = this.state;
-    var currentProps = this.state.props;
-    this.setState({ current: next });
-    this.setState(function (currentState, currentProps) {
-      return { generation: currentState.generation + 1 };
+    var next = nextGeneration(this.state.current);
+    this.setState(function (previousState, currentProps) {
+      return { current: next,
+        previous: previousState.current,
+        generation: previousState.generation + 1 };
     });
   },
   render: function render() {
@@ -65,7 +99,7 @@ var GameView = React.createClass({
         generation: this.state.generation,
         isOn: this.state.isOn
       }),
-      React.createElement(Matrix, { current: this.state.current }),
+      React.createElement(Matrix, { current: this.state.current, prev: this.state.previous }),
       React.createElement(BottomControls, {
         size: this.state.size,
         speed: this.state.speed
@@ -142,7 +176,9 @@ var Matrix = React.createClass({
     for (var i = 0; i < this.props.current.length; i++) {
       var cells = [];
       for (var j = 0; j < this.props.current[i].length; j++) {
-        cells.push(React.createElement(Cell, { state: this.props.current[i][j] }));
+        cells.push(React.createElement(Cell, {
+          state: this.props.current[i][j],
+          prev: this.props.prev[i][j] }));
       }
       rows.push(React.createElement(CellRow, { cells: cells }));
     }
@@ -180,6 +216,9 @@ var Cell = React.createClass({
 
   render: function render() {
     var color = this.props.state ? '#90020d' : '#291013';
+    if (this.props.state && this.props.state != this.props.prev) {
+      color = '#fb0418';
+    }
     var css = { backgroundColor: color };
     return React.createElement(
       "td",
