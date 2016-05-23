@@ -1,13 +1,37 @@
 "use strict";
 
+/*
+  user can change speed
+*/
+
 var DEAD = 0;
 var ALIVE = 1;
 
 var SLOW = 300;
-var MEDIUM = 100;
+var MEDIUM = 150;
 var FAST = 50;
 
-// create 2d array of cells.
+var SMALL = [30, 50];
+var MEDIUMsIZE = [50, 70];
+var LARGE = [80, 100];
+
+var interval;
+
+//create 2d array of dead cells.
+function create2dDead(a, b) {
+  var matrix = new Array(a);
+  for (var i = 0; i < a; i++) {
+    matrix[i] = new Array(b);
+    for (var j = 0; j < b; j++) {
+      // assigned randomly either 0 or 1.
+      matrix[i][j] = 0;
+    }
+  }
+  return matrix;
+}
+// end create 2d dead.
+
+// create 2d array of random cells.
 function create2d(a, b) {
   var matrix = new Array(a);
   for (var i = 0; i < a; i++) {
@@ -47,19 +71,7 @@ function nextGeneration(current) {
       // sum of neighbors and current[i][j]
       var sum = neighbors + current[i][j];
       // rules for next generation.
-
       if (sum === 3) next[i][j] = ALIVE;else if (sum === 4) next[i][j] = current[i][j];else next[i][j] = DEAD;
-
-      /*
-      if (current[i][j] === ALIVE) {
-        if (neighbors < 2 || neighbors > 3)
-          next[i][j] = DEAD;
-        else next[i][j] = ALIVE;
-      } else {
-        if (neighbors === 3) next[i][j] = ALIVE;
-        else next[i][j] = DEAD;
-      }
-      */
     }
   }
   return next;
@@ -72,23 +84,61 @@ var GameView = React.createClass({
   getInitialState: function getInitialState() {
     // initial default state of game
     return {
-      current: create2d(50, 70),
-      previous: create2d(50, 70),
-      size: [50, 70],
+      current: create2d(MEDIUMsIZE[0], MEDIUMsIZE[1]),
+      previous: create2d(MEDIUMsIZE[0], MEDIUMsIZE[1]),
+      size: MEDIUMsIZE,
       speed: MEDIUM,
       generation: 0,
       isOn: true
     };
   },
   componentDidMount: function componentDidMount() {
-    window.setInterval(this.nextState, this.state.speed);
+    interval = window.setInterval(this.nextState, this.state.speed);
   },
   nextState: function nextState() {
-    var next = nextGeneration(this.state.current);
+    if (this.state.isOn) {
+      var next = nextGeneration(this.state.current);
+      this.setState(function (previousState, currentProps) {
+        return { current: next,
+          previous: previousState.current,
+          generation: previousState.generation + 1 };
+      });
+    }
+  },
+  handleClick: function handleClick(x, y) {
+    this.state.current[x][y] = this.state.current[x][y] ? 0 : 1;
+    this.setState();
+  },
+  startGame: function startGame() {
+    if (!this.state.isOn) {
+      this.setState({ isOn: true });
+    }
+  },
+  stopGame: function stopGame() {
+    if (this.state.isOn) {
+      this.setState({ isOn: false });
+    }
+  },
+  clearGame: function clearGame() {
     this.setState(function (previousState, currentProps) {
-      return { current: next,
-        previous: previousState.current,
-        generation: previousState.generation + 1 };
+      return { current: create2dDead(previousState.size[0], previousState.size[1]),
+        previous: create2dDead(previousState.size[0], previousState.size[1]),
+        generation: 0,
+        isOn: false };
+    });
+  },
+  changeSpeed: function changeSpeed(speed) {
+    this.setState({ speed: speed }, function () {
+      window.clearInterval(interval);
+      interval = window.setInterval(this.nextState, speed);
+    });
+  },
+  changeSize: function changeSize(x, y) {
+    this.setState(function (previousState, currentProps) {
+      return { current: create2d(x, y),
+        previous: create2d(x, y),
+        size: [x, y],
+        generation: 0 };
     });
   },
   render: function render() {
@@ -97,12 +147,16 @@ var GameView = React.createClass({
       { id: "GameView" },
       React.createElement(TopControls, {
         generation: this.state.generation,
-        isOn: this.state.isOn
+        handleStart: this.startGame,
+        handlePause: this.stopGame,
+        handleClear: this.clearGame
       }),
-      React.createElement(Matrix, { current: this.state.current, prev: this.state.previous }),
+      React.createElement(Matrix, { current: this.state.current,
+        prev: this.state.previous,
+        handleClick: this.handleClick }),
       React.createElement(BottomControls, {
-        size: this.state.size,
-        speed: this.state.speed
+        handleSize: this.changeSize,
+        handleSpeed: this.changeSpeed
       })
     )
     // end GameView
@@ -116,6 +170,18 @@ var GameView = React.createClass({
 var TopControls = React.createClass({
   displayName: "TopControls",
 
+  handleStart: function handleStart(e) {
+    e.preventDefault();
+    this.props.handleStart();
+  },
+  handlePause: function handlePause(e) {
+    e.preventDefault();
+    this.props.handlePause();
+  },
+  handleClear: function handleClear(e) {
+    e.preventDefault();
+    this.props.handleClear();
+  },
   render: function render() {
     return React.createElement(
       "div",
@@ -128,7 +194,7 @@ var TopControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleStart },
             "Start"
           )
         ),
@@ -137,7 +203,7 @@ var TopControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handlePause },
             "Pause"
           )
         ),
@@ -146,7 +212,7 @@ var TopControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleClear },
             "Clear"
           )
         ),
@@ -171,6 +237,9 @@ var TopControls = React.createClass({
 var Matrix = React.createClass({
   displayName: "Matrix",
 
+  handleClick: function handleClick(x, y) {
+    this.props.handleClick(x, y);
+  },
   render: function render() {
     var rows = [];
     for (var i = 0; i < this.props.current.length; i++) {
@@ -178,9 +247,12 @@ var Matrix = React.createClass({
       for (var j = 0; j < this.props.current[i].length; j++) {
         cells.push(React.createElement(Cell, {
           state: this.props.current[i][j],
-          prev: this.props.prev[i][j] }));
+          prev: this.props.prev[i][j],
+          handleClick: this.handleClick,
+          coords: [i, j],
+          key: i * j + j }));
       }
-      rows.push(React.createElement(CellRow, { cells: cells }));
+      rows.push(React.createElement(CellRow, { cells: cells, key: i }));
     }
     return React.createElement(
       "div",
@@ -188,7 +260,11 @@ var Matrix = React.createClass({
       React.createElement(
         "table",
         null,
-        rows
+        React.createElement(
+          "tbody",
+          null,
+          rows
+        )
       )
     );
   }
@@ -214,6 +290,10 @@ var CellRow = React.createClass({
 var Cell = React.createClass({
   displayName: "Cell",
 
+  handleClick: function handleClick(e) {
+    e.preventDefault();
+    this.props.handleClick(this.props.coords[0], this.props.coords[1]);
+  },
   render: function render() {
     var color = this.props.state ? '#90020d' : '#291013';
     if (this.props.state && this.props.state != this.props.prev) {
@@ -223,7 +303,8 @@ var Cell = React.createClass({
     return React.createElement(
       "td",
       null,
-      React.createElement("div", { style: css })
+      React.createElement("div", { style: css,
+        onClick: this.handleClick })
     );
   }
 });
@@ -233,6 +314,15 @@ var Cell = React.createClass({
 var BottomControls = React.createClass({
   displayName: "BottomControls",
 
+  handleSize: function handleSize(e) {
+    e.preventDefault();
+    var size = e.target.value.split('x');
+    this.props.handleSize(parseInt(size[0]), parseInt(size[1]));
+  },
+  handleSpeed: function handleSpeed(e) {
+    e.preventDefault();
+    this.props.handleSpeed(parseInt(e.target.value));
+  },
   render: function render() {
     return React.createElement(
       "div",
@@ -254,7 +344,7 @@ var BottomControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleSize, value: "30x50" },
             "30x50"
           )
         ),
@@ -263,7 +353,7 @@ var BottomControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleSize, value: "50x70" },
             "50x70"
           )
         ),
@@ -272,7 +362,7 @@ var BottomControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleSize, value: "80x100" },
             "80x100"
           )
         )
@@ -294,7 +384,7 @@ var BottomControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleSpeed, value: SLOW },
             "slow"
           )
         ),
@@ -303,7 +393,7 @@ var BottomControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleSpeed, value: MEDIUM },
             "medium"
           )
         ),
@@ -312,7 +402,7 @@ var BottomControls = React.createClass({
           null,
           React.createElement(
             "button",
-            null,
+            { onClick: this.handleSpeed, value: FAST },
             "fast"
           )
         )
@@ -323,4 +413,4 @@ var BottomControls = React.createClass({
 });
 // end of bottom controls.
 
-React.render(React.createElement(GameView, null), document.getElementById('matrix'));
+ReactDOM.render(React.createElement(GameView, null), document.getElementById('matrix'));

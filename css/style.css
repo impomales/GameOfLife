@@ -1,12 +1,12 @@
 body {
-  background-color: #291013;
+  background-color: #80b3ff;
 }
 
 .controls button {
   width: 25%;
   background-color: #000033;
-  box-shadow: 0px 3px 5px #000;
-  color: #444;
+  box-shadow: 0px 2px 15px #000;
+  color: #696969;
   border: none;
 }
 .controls ul li {
@@ -18,12 +18,13 @@ body {
 }
 
 #Matrix {
-  background-color: #291013;
+  background-color: inherit;
+  margin-bottom: 20px;
 }
 #Matrix table {
   margin: auto;
-  background-color: #291013;
-  border: 2px solid #00002d;
+  background-color: #80b3ff;
+  box-shadow: 0px 5px 20px black;
 }
 #Matrix table td div {
   width: 10px;
