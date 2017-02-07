@@ -46,5 +46,5 @@ h2, h3 {
 #Matrix table td div {
   width: 10px;
   height: 10px;
-  border: 1px solid rgba(90, 2, 19, 0.4);
+  border: 0.5px solid rgba(90, 2, 19, 0.4);
 }
