@@ -1,49 +1,39 @@
 body {
   background-color: #80b3ff;
-  text-align: center;
-}
+  text-align: center; }
 
 h2, h3 {
   font-family: "Inconsolata", sans-serif;
   font-size: 20px;
-  margin: 0px;
-}
+  margin: 0px; }
 
 .controls button {
   width: 25%;
   background-color: #3366ff;
   color: #fff;
-  border: none;
-}
+  border: none; }
 .controls ul {
-  width: 100%;
-}
+  width: 100%; }
 .controls ul li {
   box-shadow: 0px 0px 10px #000;
   display: inline;
-  list-style-type: none;
-}
+  list-style-type: none; }
 .controls h6 {
   width: 25%;
-  display: inline;
-}
+  display: inline; }
 
 #title {
   font-family: "Playfair Display", serif;
-  color: #000033;
-}
+  color: #000033; }
 
 #Matrix {
   background-color: inherit;
   margin-top: 20px;
-  margin-bottom: 20px;
-}
-#Matrix table {
-  margin: auto;
-  background-color: #80b3ff;
-  box-shadow: 0px 5px 20px black;
-}
-#Matrix table td div {
-  width: 10px;
-  height: 10px;
-}
+  margin-bottom: 20px; }
+  #Matrix table {
+    margin: auto;
+    background-color: #900219;
+    box-shadow: 0px 5px 20px black; }
+    #Matrix table td div {
+      width: 10px;
+      height: 10px; }
